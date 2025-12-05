@@ -104,23 +104,26 @@ def main():
 
         tz = ZoneInfo("America/Chicago")
         now_local = datetime.now(tz)
-        # Target shutdown today at 23:30 local
-        shutdown_local = now_local.replace(hour=23, minute=30, second=0, microsecond=0)
+        # Target shutdown today at 11:05 local, wind-down at 11:00
+        shutdown_local = now_local.replace(hour=11, minute=5, second=0, microsecond=0)
+        winddown_local = now_local.replace(hour=11, minute=0, second=0, microsecond=0)
         if now_local >= shutdown_local:
             # If it's already past shutdown, schedule to next day
             shutdown_local = shutdown_local + timedelta(days=1)
+            winddown_local = winddown_local + timedelta(days=1)
 
         runtime_seconds = (shutdown_local - now_local).total_seconds()
         runtime_hours = max(0.0, runtime_seconds / 3600.0)
 
-        # Wind-down 30 minutes before shutdown
-        winddown_seconds = max(0.0, runtime_seconds - 30 * 60)
-        winddown_hours = winddown_seconds / 3600.0
+        # Wind-down at 11:00 (5 minutes before shutdown at 11:05)
+        winddown_seconds = (winddown_local - now_local).total_seconds()
+        winddown_hours = max(0.0, winddown_seconds / 3600.0)
 
         bot.winddown_hours = winddown_hours
         bot.max_runtime_hours = runtime_hours
 
         print(f"Current local time (America/Chicago): {now_local.isoformat()}")
+        print(f"Scheduled wind-down local time: {winddown_local.isoformat()}")
         print(f"Scheduled shutdown local time: {shutdown_local.isoformat()}")
         print(f"Scheduled runtime: {runtime_hours:.2f} hours (wind-down at {winddown_hours:.2f} hours)")
     except Exception as e:

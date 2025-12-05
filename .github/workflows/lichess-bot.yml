@@ -7,8 +7,8 @@ name: Lichess Bot Scheduled Run
 
 on:
   schedule:
-    # Run at 11:45 UTC daily -> 05:45 CST (America/Chicago, UTC-6)
-    - cron: '45 11 * * *'
+    # Run at 12:00 UTC daily -> 06:00 CST (America/Chicago, UTC-6)
+    - cron: '0 12 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LICHESS_TOKEN: ${{ secrets.LICHESS_TOKEN }}
+      STOCKFISH_URL: ${{ secrets.STOCKFISH_URL }}
 
     steps:
       - name: Checkout repository
@@ -31,6 +32,52 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           if [ -f "requirements.txt" ]; then pip install -r requirements.txt; fi
           if [ -f "LichessStockfishand-fairy-fish-1/pyproject.toml" ]; then pip install -e LichessStockfishand-fairy-fish-1 || true; fi
+
+      - name: Download and install Stockfish 17 (optional)
+        # This step will use either `STOCKFISH_PATH` if provided (path on the runner),
+        # or `STOCKFISH_URL` secret to download a prebuilt binary/archive.
+        run: |
+          set -e
+          mkdir -p LichessStockfishand-fairy-fish-1/stockfish
+
+          if [ -n "$STOCKFISH_PATH" ] && [ -f "$STOCKFISH_PATH" ]; then
+            echo "Using provided STOCKFISH_PATH: $STOCKFISH_PATH"
+            cp "$STOCKFISH_PATH" LichessStockfishand-fairy-fish-1/stockfish/stockfish-17
+            chmod +x LichessStockfishand-fairy-fish-1/stockfish/stockfish-17
+          elif [ -n "$STOCKFISH_URL" ]; then
+            echo "Downloading Stockfish from $STOCKFISH_URL"
+            tmpf=/tmp/stockfish_download
+            curl -fL "$STOCKFISH_URL" -o "$tmpf"
+            file "$tmpf" || true
+
+            if file "$tmpf" | grep -qi gzip; then
+              tar -xzf "$tmpf" -C LichessStockfishand-fairy-fish-1/stockfish || true
+            elif file "$tmpf" | grep -qi zip; then
+              unzip -o "$tmpf" -d LichessStockfishand-fairy-fish-1/stockfish || true
+            else
+              # assume it's a single binary
+              mv "$tmpf" LichessStockfishand-fairy-fish-1/stockfish/stockfish-17
+            fi
+
+            # Find an executable named stockfish* or any executable
+            bin=$(find LichessStockfishand-fairy-fish-1/stockfish -type f -name 'stockfish*' -perm /111 | head -n1 || true)
+            if [ -z "$bin" ]; then
+              bin=$(find LichessStockfishand-fairy-fish-1/stockfish -type f -perm /111 | head -n1 || true)
+            fi
+            if [ -n "$bin" ]; then
+              cp "$bin" LichessStockfishand-fairy-fish-1/stockfish/stockfish-17
+              chmod +x LichessStockfishand-fairy-fish-1/stockfish/stockfish-17
+              echo "Installed stockfish from $bin"
+            else
+              echo "No executable found after extracting download"
+            fi
+          else
+            echo "No STOCKFISH_PATH or STOCKFISH_URL provided; skipping download"
+          fi
+
+          # Expose path to the runner
+          echo "STOCKFISH_PATH=./LichessStockfishand-fairy-fish-1/stockfish/stockfish-17" >> $GITHUB_ENV
+
 
       - name: Run scheduled bot
         # The script expects `LICHESS_TOKEN` in the environment (set above from repo secret).
