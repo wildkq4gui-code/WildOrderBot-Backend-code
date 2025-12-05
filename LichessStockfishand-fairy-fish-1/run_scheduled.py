@@ -19,6 +19,30 @@ except Exception:
 
 
 def main():
+    # Load local .env file if present (convenience for local runs).
+    # This allows you to create a `.env` file with `LICHESS_TOKEN=...` for local testing.
+    def load_dotenv(path='.env'):
+        try:
+            if not os.path.exists(path):
+                return
+            with open(path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if '=' not in line:
+                        continue
+                    key, val = line.split('=', 1)
+                    key = key.strip()
+                    val = val.strip().strip('"').strip("'")
+                    # Only set if not already present in environment
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+        except Exception:
+            pass
+
+    load_dotenv()
+
     print("=" * 60)
     print("Lichess Bot - GitHub Actions Scheduled Run")
     print("Settings: 100ms per move, Depth 30")
@@ -32,7 +56,38 @@ def main():
         sys.exit(1)
     
     print("\nInitializing bot...")
-    bot = LichessBot(token)
+    # Resolve engine binary path relative to this script so the runner can find it
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    default_engine_rel = os.path.join(script_dir, "stockfish/stockfish-ubuntu-x86-64-avx2")
+    fairy_engine_rel = os.path.join(script_dir, "stockfish/fairy-stockfish")
+
+    # Allow overriding engine path via environment variable (useful for Stockfish 16.1)
+    env_engine = os.environ.get('STOCKFISH_PATH')
+    engine_path_to_use = None
+    if env_engine and os.path.exists(env_engine):
+        engine_path_to_use = env_engine
+    else:
+        # Prefer Stockfish 17 binaries first, then 16.1, then bundled fallbacks
+        candidate_names = [
+            os.path.join(script_dir, 'stockfish', 'stockfish-17'),
+            os.path.join(script_dir, 'stockfish', 'stockfish-17-ubuntu-x86-64'),
+            os.path.join(script_dir, 'stockfish', 'stockfish-17-ubuntu-x86-64-avx2'),
+            os.path.join(script_dir, 'stockfish', 'stockfish-16.1'),
+            os.path.join(script_dir, 'stockfish', 'stockfish-16.1-ubuntu-x86-64'),
+            default_engine_rel,
+            fairy_engine_rel,
+        ]
+        for cand in candidate_names:
+            if cand and os.path.exists(cand):
+                engine_path_to_use = cand
+                break
+
+    if engine_path_to_use:
+        print(f"Using engine binary at: {engine_path_to_use}")
+        bot = LichessBot(token, stockfish_path=engine_path_to_use)
+    else:
+        print("Warning: No local engine binary found at expected paths. Falling back to default path.")
+        bot = LichessBot(token)
     
     bot.manual_mode = True
     bot.manual_time_limit = 0.1

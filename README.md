@@ -28,3 +28,17 @@ python3 LichessStockfishand-fairy-fish-1/run_scheduled.py
 Notes
 - GitHub Actions cron uses UTC. The workflow is configured to start at 11:45 UTC which corresponds to 05:45 America/Chicago (CST/CDT transition is handled by the timezone conversion here in the code).
 - The bot calculates the runtime until 23:30 America/Chicago on the same day and will begin wind-down 30 minutes before shutdown (23:00). If zoneinfo is unavailable, it falls back to the previous 6-hour behavior.
+
+Using Stockfish 17
+- To run the bot with Stockfish 17, place the Stockfish 17 binary into `LichessStockfishand-fairy-fish-1/stockfish/` and name it one of the following (preferred order):
+	- `stockfish-17`
+	- `stockfish-17-ubuntu-x86-64`
+	- `stockfish-17-ubuntu-x86-64-avx2`
+
+- If you don't want to place the binary in the repo, set a custom path via environment variable `STOCKFISH_PATH` (or add it to your local `.env`):
+
+```bash
+export STOCKFISH_PATH="/path/to/your/stockfish-17"
+```
+
+The runner prefers `STOCKFISH_PATH` if set and the file exists. If no custom path or Stockfish 17 binary is found, the script will fall back to Stockfish 16.1 (if present) and then to bundled binaries.
