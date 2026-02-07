@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Large Stockfish binaries (use download script to fetch)
+LichessStockfishand-fairy-fish-1/stockfish/stockfish-17*
+LichessStockfishand-fairy-fish-1/stockfish/stockfish-18*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config/logs
+*.log
+config.local.json
