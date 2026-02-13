@@ -7,9 +7,9 @@ name: Lichess Bot Scheduled Run
 
 on:
   schedule:
-    # Run at 12:00 UTC on Sat, Sun, Mon, Wed -> 06:00 CST (America/Chicago, UTC-6)
-    # Cron day-of-week: 0=Sunday, 1=Monday, 3=Wednesday, 6=Saturday
-    - cron: '0 12 * * 0,1,3,6'
+    # Run at 12:00 UTC every day -> 06:00 CST (America/Chicago, UTC-6)
+    # Cron day-of-week: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+    - cron: '0 12 * * *'
   workflow_dispatch: {}
 
 jobs:
