@@ -63,7 +63,7 @@ class LichessBot:
         self.manual_time_limit = 0.1  # seconds (0.001 to 5.0)
         self.manual_depth = 20  # depth (1 to 50)
         self.manual_threads = 8  # threads (1 to 128)
-        self.manual_hash = 2048  # hash in MB (2 to 8192)
+        self.manual_hash = 4096  # hash in MB (2 to 8192)
         self.manual_overhead = 50  # milliseconds (1 to 500)
         
         # Challenge control settings
@@ -114,10 +114,10 @@ class LichessBot:
             # Configure engine for high-level play
             self.engine.configure({
                 "Threads": min(8, os.cpu_count() or 4),
-                "Hash": 2048,
-                "Move Overhead": 2,
+                "Hash": 4096,
+                "Move Overhead": 50
             })
-            print(f"✓ Engine configured with {min(8, os.cpu_count() or 4)} threads, Hash: 2048 MB")
+            print(f"✓ Engine configured with {min(8, os.cpu_count() or 4)} threads, Hash: 4096 MB")
         except Exception as e:
             print(f"✗ Failed to initialize engine: {e}")
             sys.exit(1)
@@ -781,8 +781,8 @@ class LichessBot:
                         # The schedule check at the top of the loop will handle shutdown
                     
                     if auto_challenge_bots and not self.current_game_id and not self.winding_down:
-                        print("\n⏱ Waiting 3 seconds before challenging next bot...")
-                        time.sleep(3)
+                        print("\n⏱ Waiting 35 seconds before challenging next bot...")
+                        time.sleep(35)
                         if not self.should_stop and not self.winding_down:
                             self.challenge_random_bot(rated=False, clock_limit=180, clock_increment=0)
                     

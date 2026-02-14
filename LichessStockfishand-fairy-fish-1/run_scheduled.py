@@ -139,7 +139,7 @@ def main():
     if bot.engine:
         bot.engine.configure({
             "Threads": min(8, os.cpu_count() or 4),
-            "Hash": 2048,
+            "Hash": 4096,
             "Move Overhead": 50
         })
     
@@ -147,10 +147,10 @@ def main():
     print(f"  - Time limit: {bot.manual_time_limit * 1000:.0f}ms per move")
     print(f"  - Search depth: {bot.manual_depth}")
     print(f"  - Threads: {min(8, os.cpu_count() or 4)}")
-    print(f"  - Hash: 2048 MB")
+    print(f"  - Hash: 4096 MB")
     print(f"\nGame constraints:")
     print(f"  - Only one game at a time (bot declines challenges while playing)")
-    print(f"  - Memory-efficient depth: 50 with 2GB hash")
+    print(f"  - Memory-efficient depth: 50 with 4GB hash")
     print(f"\nSchedule:")
     print(f"  - Wind-down after: {bot.winddown_hours} hours")
     print(f"  - Shutdown after: {bot.max_runtime_hours} hours")
